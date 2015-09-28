@@ -1,8 +1,6 @@
-package com.onmybike.chrisgregory.onmybike;
+package com.onmybike.chrisgregory.onmybike.activites;
 
-import android.app.Activity;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Handler;
 import android.os.StrictMode;
 import android.os.Vibrator;
@@ -15,6 +13,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
+import com.onmybike.chrisgregory.onmybike.model.TimerState;
 import com.onmybike.chrisgregory.onmybike_chapter4.BuildConfig;
 import com.onmybike.chrisgregory.onmybike_chapter4.R;
 
@@ -24,12 +23,10 @@ public class TimerActivity extends AppCompatActivity {
     private static String CLASS_NAME;
     private static long UPDATE_EVERY = 200;
 
+    private TimerState timer;
     protected TextView counter;
     protected Button start;
     protected Button stop;
-    protected boolean timerRunning;
-    protected long startedAt;
-    protected long lastStopped;
     protected Handler handler;
     protected UpdateTimer updateTimer;
     protected Vibrator vibrate;
@@ -37,21 +34,13 @@ public class TimerActivity extends AppCompatActivity {
 
     public TimerActivity(){
         CLASS_NAME = this.getClass().getName();
+        timer = new TimerState();
+    }
 
-        // crude hack for StrictMode activity instance count violation
-//        Method m;
-//        try {
-//            m = StrictMode.class.getMethod("incrementExpectedActivityCount", Class.class);
-//            m.invoke(null, TimerActivity.class);
-//            m.invoke(null, SettingsActivity.class);
-//        } catch (NoSuchMethodException e) {
-//            e.printStackTrace();
-//        } catch (InvocationTargetException e) {
-//            e.printStackTrace();
-//        } catch (IllegalAccessException e) {
-//            e.printStackTrace();
-//        }
-
+    @Override
+    protected void onNewIntent(Intent intent){
+        super.onNewIntent(intent);
+        Log.d(CLASS_NAME, "onNewIntent");
     }
 
     @Override
@@ -60,12 +49,13 @@ public class TimerActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_timer);
 
-
-
         if(savedInstanceState != null){
-            timerRunning = (boolean) savedInstanceState.getSerializable("timerRunning");
-            startedAt = (long) savedInstanceState.getSerializable("startedAt");
-            lastStopped = (long) savedInstanceState.getSerializable("lastStopped");
+            Log.d(CLASS_NAME, "Saved Instance State found.");
+            timer.setRunning((boolean) savedInstanceState.getSerializable("timerRunning"));
+            timer.setStartedAt((long) savedInstanceState.getSerializable("startedAt"));
+            timer.setLastStopped((long) savedInstanceState.getSerializable("lastStopped"));
+        } else {
+            Log.d(CLASS_NAME, "A Saved Instance State could not be found.");
         }
 
         Log.d(CLASS_NAME, "Setting Counter & Buttons");
@@ -74,31 +64,14 @@ public class TimerActivity extends AppCompatActivity {
         stop = (Button) findViewById(R.id.stop_button);
 
         enableButtons();
-
-        //Strict Mode
-        if(BuildConfig.DEBUG){
-            StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder().detectAll().penaltyLog().build());
-            try {
-                StrictMode.setVmPolicy(new StrictMode.VmPolicy
-                        .Builder()
-                        .detectLeakedClosableObjects()
-                        .detectLeakedSqlLiteObjects()
-                        .setClassInstanceLimit(Class.forName("com.onmybike.chrisgregory.onmybike.TimerActivity"), 1)
-                        .setClassInstanceLimit(Class.forName("com.onmybike.chrisgregory.onmybike.SettingsActivity"), 1)
-                        .penaltyLog()
-                        .penaltyDeath()
-                        .build());
-            } catch (ClassNotFoundException e) {
-                e.printStackTrace();
-            }
-        }
+        enableStrictMode();
     }
 
     @Override
     public void onStart(){
         super.onStart();
         Log.d(CLASS_NAME, "onStart");
-        if(timerRunning){
+        if(timer.isRunning()){
             handler = new Handler();
             updateTimer = new UpdateTimer();
             handler.postDelayed(updateTimer, UPDATE_EVERY);
@@ -120,14 +93,14 @@ public class TimerActivity extends AppCompatActivity {
         super.onResume();
         Log.d(CLASS_NAME, "onResume");
         enableButtons();
-        setTimeDisplay();
+        counter.setText(timer.display());
     }
 
     @Override
     public void onStop() {
         super.onStop();
         Log.d(CLASS_NAME, "onStop");
-        if(timerRunning){
+        if(timer.isRunning()){
             handler.removeCallbacks(updateTimer);
             updateTimer = null;
             handler = null;
@@ -165,6 +138,7 @@ public class TimerActivity extends AppCompatActivity {
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
+            clickedSettings(null);
             return true;
         }
 
@@ -175,9 +149,9 @@ public class TimerActivity extends AppCompatActivity {
     public void onSaveInstanceState(Bundle state) {
         super.onSaveInstanceState(state);
         Log.d(CLASS_NAME, "onSaveInstanceState");
-        state.putSerializable("timerRunning", timerRunning);
-        state.putSerializable("startedAt", startedAt);
-        state.putSerializable("lastStopped", lastStopped);
+        state.putSerializable("timerRunning", timer.isRunning());
+        state.putSerializable("startedAt", timer.getStartedAt());
+        state.putSerializable("lastStopped", timer.getLastStopped());
     }
 
     @Override
@@ -188,13 +162,11 @@ public class TimerActivity extends AppCompatActivity {
 
     public void clickedStart(View view){
         Log.d(CLASS_NAME, "Start button clicked.");
-        timerRunning = true;
+        timer.start();
         enableButtons();
 
-        startedAt = System.currentTimeMillis();
-
         Log.d(CLASS_NAME, "Setting time Display");
-        setTimeDisplay();
+        counter.setText(timer.display());
 
         handler = new Handler();
         updateTimer = new UpdateTimer();
@@ -204,13 +176,12 @@ public class TimerActivity extends AppCompatActivity {
 
     public void clickedStop(View view){
         Log.d(CLASS_NAME, "Stop button clicked.");
-        timerRunning = false;
+        timer.stop();
         enableButtons();
 
-        lastStopped = System.currentTimeMillis();
-
         Log.d(CLASS_NAME, "Setting time Display");
-        setTimeDisplay();
+        counter.setText(timer.display());
+        lastSeconds = 0;
 
         handler.removeCallbacks(updateTimer);
         handler = null;
@@ -218,11 +189,6 @@ public class TimerActivity extends AppCompatActivity {
 
     public void clickedSettings(View view){
         Log.d(CLASS_NAME, "clickedSettings");
-//
-//        SharedPreferences preferences = getSharedPreferences("userprefrences", Activity.MODE_PRIVATE);
-//        SharedPreferences.Editor editor = preferences.edit();
-//        editor.apply();
-
         Intent settingsIntent = new Intent(getApplicationContext(), SettingsActivity.class);
         Log.d(CLASS_NAME, "Intent Created");
         startActivity(settingsIntent);
@@ -230,8 +196,7 @@ public class TimerActivity extends AppCompatActivity {
     }
 
     protected void vibrateCheck(){
-        long timeNow = System.currentTimeMillis();
-        long diff = timeNow - startedAt;
+        long diff = timer.elapsedTime();
         long seconds = diff / 1000;
         long minutes = seconds / 60;
 
@@ -242,80 +207,61 @@ public class TimerActivity extends AppCompatActivity {
             long[] once = {0, 100};
             long[] twice = {0, 100, 400, 100};
             long[] thrice = {0, 100, 400, 100, 400, 100};
-
             //every hour
             if(minutes == 0){
                 Log.i(CLASS_NAME, "Vibrate 3 times");
                 vibrate.vibrate(thrice, -1);
             }
-
             //every 15min
             else if( minutes % 15 == 0){
                 Log.i(CLASS_NAME, "Vibrate 2 times");
                 vibrate.vibrate(twice, -1);
             }
-
             //every 5min
             else if(minutes % 5 == 0){
                 Log.i(CLASS_NAME, "Vibrate once");
                 vibrate.vibrate(once, -1);
             }
         }
-
         lastSeconds = seconds;
-
-    }
-
-    protected void setTimeDisplay(){
-        String display;
-        long timeNow;
-        long diff;
-        long seconds;
-        long minutes;
-        long hours;
-
-        if(timerRunning){
-            timeNow = System.currentTimeMillis();
-        } else {
-            timeNow = lastStopped;
-        }
-
-        diff = timeNow - startedAt;
-
-        // no negative time
-        if(diff < 0){
-            diff = 0;
-        }
-
-        seconds = diff / 1000;
-        minutes = seconds / 60;
-        hours = minutes / 60;
-        seconds = seconds % 60;
-        minutes = minutes % 60;
-
-        display = String.format("%d", hours) + ":"
-                + String.format("%02d", minutes) + ":"
-                + String.format("%02d", seconds);
-
-        counter.setText(display);
     }
 
     protected void enableButtons(){
-        start.setEnabled(!timerRunning);
-        stop.setEnabled(timerRunning);
+        boolean running = timer.isRunning();
+        start.setEnabled(!running);
+        stop.setEnabled(running);
     }
 
     class UpdateTimer implements Runnable {
 
         public void run(){
-            setTimeDisplay();
-            if(timerRunning){
+            counter.setText(timer.display());
+            if(timer.isRunning()){
                 vibrateCheck();
             }
             if(handler != null){
                 handler.postDelayed(this, UPDATE_EVERY);
             }
         }
+    }
 
+    private void enableStrictMode() {
+        //Strict Mode
+        if(BuildConfig.DEBUG){
+            StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder().detectAll().penaltyLog().build());
+            try {
+                StrictMode.setVmPolicy(new StrictMode.VmPolicy
+                        .Builder()
+                        .detectLeakedClosableObjects()
+                        .detectLeakedSqlLiteObjects()
+                        .setClassInstanceLimit(Class.forName("com.onmybike.chrisgregory.onmybike.activites.TimerActivity"), 100)
+                        .setClassInstanceLimit(Class.forName("com.onmybike.chrisgregory.onmybike.activites.SettingsActivity"), 100)
+                        .penaltyLog()
+                        .penaltyDeath()
+                        .build());
+            } catch (ClassNotFoundException e) {
+                e.printStackTrace();
+            }
+        }
     }
 }

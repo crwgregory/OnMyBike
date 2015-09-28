@@ -1,7 +1,9 @@
-package com.onmybike.chrisgregory.onmybike;
+package com.onmybike.chrisgregory.onmybike.model;
 
 import android.app.Activity;
 import android.widget.CheckBox;
+
+import com.onmybike.chrisgregory.onmybike.SettingsAsyncTask;
 
 import java.util.ArrayList;
 

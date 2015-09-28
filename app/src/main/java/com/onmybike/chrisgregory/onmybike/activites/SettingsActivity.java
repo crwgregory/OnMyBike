@@ -1,24 +1,28 @@
-package com.onmybike.chrisgregory.onmybike;
+package com.onmybike.chrisgregory.onmybike.activites;
 
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.CheckBox;
 
+import com.onmybike.chrisgregory.onmybike.OnMyBike;
+import com.onmybike.chrisgregory.onmybike.helpers.Toaster;
+import com.onmybike.chrisgregory.onmybike.model.Settings;
 import com.onmybike.chrisgregory.onmybike_chapter4.R;
 
 import java.util.ArrayList;
 
 public class SettingsActivity extends AppCompatActivity {
 
+    private static String CLASS_NAME;
     private static String LOAD = "load";
     private static String SAVE = "save";
 
     private CheckBox vibrate;
     private ArrayList<CheckBox> settingsArray = new ArrayList<>();
-    private String CLASS_NAME;
 
     public SettingsActivity(){
         CLASS_NAME = getClass().getName();
@@ -37,6 +41,10 @@ public class SettingsActivity extends AppCompatActivity {
         Settings settings = ((OnMyBike)getApplication()).getSettings();
         Log.d(CLASS_NAME, "Got settings class.");
         settings.action(this, settingsArray, LOAD);
+
+//        getActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        Log.d(CLASS_NAME, "setDisplayHomeAsUpEnabled(true);");
     }
 
     @Override
@@ -54,6 +62,7 @@ public class SettingsActivity extends AppCompatActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_settings, menu);
+
         return true;
     }
 
@@ -70,6 +79,15 @@ public class SettingsActivity extends AppCompatActivity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    public void vibrateChanged(View view){
+        Toaster toaster = new Toaster(getApplicationContext());
+        if(vibrate.isChecked()){
+            toaster.make(R.string.vibrate_on);
+        } else {
+            toaster.make(R.string.vibrate_off);
+        }
     }
 
     private void populateSettings(){

@@ -19,11 +19,11 @@ public class SettingsAsyncTask extends AsyncTask<Void, Void, Boolean> {
     private static String SAVE = "save";
 
     private int id;
+    private String action;
+    private String stringId;
     private Context context;
     private Boolean checked;
-    private String stringId;
     private Activity activity;
-    private String action;
 
     public SettingsAsyncTask(Activity activity, boolean checked, int id, String action){
         CLASS_NAME = getClass().getName();

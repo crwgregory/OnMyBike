@@ -2,6 +2,8 @@ package com.onmybike.chrisgregory.onmybike;
 
 import android.app.Application;
 
+import com.onmybike.chrisgregory.onmybike.model.Settings;
+
 /**
  * Created by Greg Christopherson on 9/21/2015.
  */
