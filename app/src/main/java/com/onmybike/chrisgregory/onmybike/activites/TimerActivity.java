@@ -1,6 +1,10 @@
 package com.onmybike.chrisgregory.onmybike.activites;
 
+import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.res.Resources;
 import android.os.Handler;
 import android.os.StrictMode;
 import android.os.Vibrator;
@@ -13,6 +17,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
+import com.onmybike.chrisgregory.onmybike.helpers.Notify;
 import com.onmybike.chrisgregory.onmybike.model.TimerState;
 import com.onmybike.chrisgregory.onmybike_chapter4.BuildConfig;
 import com.onmybike.chrisgregory.onmybike_chapter4.R;
@@ -31,6 +36,7 @@ public class TimerActivity extends AppCompatActivity {
     protected UpdateTimer updateTimer;
     protected Vibrator vibrate;
     protected long lastSeconds;
+    protected Notify notify;
 
     public TimerActivity(){
         CLASS_NAME = this.getClass().getName();
@@ -65,6 +71,8 @@ public class TimerActivity extends AppCompatActivity {
 
         enableButtons();
         enableStrictMode();
+
+        notify = new Notify(this);
     }
 
     @Override
@@ -73,7 +81,7 @@ public class TimerActivity extends AppCompatActivity {
         Log.d(CLASS_NAME, "onStart");
         if(timer.isRunning()){
             handler = new Handler();
-            updateTimer = new UpdateTimer();
+            updateTimer = new UpdateTimer(this.getApplicationContext());
             handler.postDelayed(updateTimer, UPDATE_EVERY);
         }
         vibrate = (Vibrator) getSystemService(VIBRATOR_SERVICE);
@@ -137,9 +145,13 @@ public class TimerActivity extends AppCompatActivity {
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            clickedSettings(null);
-            return true;
+        switch (id){
+            case R.id.action_settings:
+                clickedSettings(null);
+                return true;
+            case R.id.menu_routes:
+                clickedRoutes();
+                return true;
         }
 
         return super.onOptionsItemSelected(item);
@@ -169,7 +181,7 @@ public class TimerActivity extends AppCompatActivity {
         counter.setText(timer.display());
 
         handler = new Handler();
-        updateTimer = new UpdateTimer();
+        updateTimer = new UpdateTimer(this.getApplicationContext());
         handler.postDelayed(updateTimer, UPDATE_EVERY);
 
     }
@@ -185,6 +197,12 @@ public class TimerActivity extends AppCompatActivity {
 
         handler.removeCallbacks(updateTimer);
         handler = null;
+    }
+
+    public void clickedRoutes(){
+        Log.d(CLASS_NAME, "clickedRoutes()");
+        Intent routes = new Intent(getApplicationContext(), RoutesActivity.class);
+        startActivity(routes);
     }
 
     public void clickedSettings(View view){
@@ -208,7 +226,7 @@ public class TimerActivity extends AppCompatActivity {
             long[] twice = {0, 100, 400, 100};
             long[] thrice = {0, 100, 400, 100, 400, 100};
             //every hour
-            if(minutes == 0){
+            if(minutes % 60 == 0){
                 Log.i(CLASS_NAME, "Vibrate 3 times");
                 vibrate.vibrate(thrice, -1);
             }
@@ -226,6 +244,29 @@ public class TimerActivity extends AppCompatActivity {
         lastSeconds = seconds;
     }
 
+    protected void notifyCheck() {
+        long diff = timer.elapsedTime();
+        long seconds = diff / 1000;
+        long minutes = seconds / 60;
+        long hours = minutes / 60;
+
+
+        seconds = seconds % 60;
+        minutes = minutes % 60;
+        if (seconds == 0 && seconds != lastSeconds){
+            Resources resources = getResources();
+            String message;
+            String title = resources.getString(R.string.time_title);
+            if(hours == 0 && minutes == 0){
+                message = resources.getString(R.string.time_start_message);
+            } else {
+                message = String.format(resources.getString(R.string.time_running_message), hours, minutes);
+            }
+            notify.notify(title, message);
+        }
+        lastSeconds = seconds;
+    }
+
     protected void enableButtons(){
         boolean running = timer.isRunning();
         start.setEnabled(!running);
@@ -234,10 +275,23 @@ public class TimerActivity extends AppCompatActivity {
 
     class UpdateTimer implements Runnable {
 
+        Context context;
+
+        public UpdateTimer(Context context){
+            this.context = context;
+        }
+
         public void run(){
             counter.setText(timer.display());
             if(timer.isRunning()){
-                vibrateCheck();
+                String vibrateButtonID = Integer.toString(R.id.vibrate_button);
+                SharedPreferences preferences = context.getSharedPreferences("userprefrences", Activity.MODE_PRIVATE);
+                if(preferences.contains(vibrateButtonID)){
+                    if(preferences.getBoolean(vibrateButtonID, false)){
+                        vibrateCheck();
+                        notifyCheck();
+                    }
+                }
             }
             if(handler != null){
                 handler.postDelayed(this, UPDATE_EVERY);

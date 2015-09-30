@@ -13,7 +13,7 @@
         <activity
             android:name="com.onmybike.chrisgregory.onmybike.activites.TimerActivity"
             android:label="@string/app_name"
-            android:launchMode="singleTop">
+            android:launchMode="singleTop" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -25,7 +25,11 @@
             android:label="@string/title_activity_settings" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.onmybike.chrisgregory.onmybike.activites.TimerActivity"/>
+                android:value="com.onmybike.chrisgregory.onmybike.activites.TimerActivity" />
+        </activity>
+        <activity
+            android:name="com.onmybike.chrisgregory.onmybike.activites.RoutesActivity"
+            android:label="@string/title_activity_routes" >
         </activity>
     </application>
 

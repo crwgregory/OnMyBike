@@ -54,8 +54,6 @@ public class SettingsAsyncTask extends AsyncTask<Void, Void, Boolean> {
         } else {
             Log.d(CLASS_NAME, "Invalid save action String.");
         }
-
-
         return checked;
     }
 
@@ -67,6 +65,5 @@ public class SettingsAsyncTask extends AsyncTask<Void, Void, Boolean> {
             CheckBox checkBox = (CheckBox) activity.findViewById(id);
             checkBox.setChecked(checked);
         }
-
     }
 }

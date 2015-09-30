@@ -24,5 +24,17 @@ public class Settings{
             new SettingsAsyncTask(activity, checkBox.isChecked(), checkBox.getId(), action).execute();
         }
     }
+
+    public boolean isVibrateOn(Activity activity){
+
+        Runnable runnable = new Runnable() {
+            @Override
+            public void run() {
+
+            }
+        };
+
+        return true;
+    }
 }
 

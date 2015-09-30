@@ -13,5 +13,13 @@
     <string name="settings_button">Settings</string>
     <string name="vibrate_on">Timer when running will vibrate every 5 minutes, 15 minutes and on the hour.</string>
     <string name="vibrate_off">Timer will not vibrate.</string>
+    <string name="time_running_ticker">Keep going!</string>
+    <string name="time_running_message">You have been riding for %1$02d:%2$02d. Keep it up!</string>
+    <string name="time_start_ticker">On your way!</string>
+    <string name="time_start_message">You have just started.</string>
+    <string name="time_title">On Your Bike</string>
+    <string name="title_activity_routes">RoutesActivity</string>
+    <string name="menu_routes">Routes</string>
+
 
 </resources>

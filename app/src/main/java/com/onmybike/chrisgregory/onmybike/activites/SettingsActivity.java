@@ -36,13 +36,12 @@ public class SettingsActivity extends AppCompatActivity {
 
         vibrate = (CheckBox) findViewById(R.id.vibrate_button);
 
-        //Load Settings using AsyncTask
+        //Load Settings and set Check Boxes using AsyncTask
         populateSettings();
         Settings settings = ((OnMyBike)getApplication()).getSettings();
         Log.d(CLASS_NAME, "Got settings class.");
         settings.action(this, settingsArray, LOAD);
 
-//        getActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         Log.d(CLASS_NAME, "setDisplayHomeAsUpEnabled(true);");
     }
