@@ -14,7 +14,7 @@ import com.onmybike.chrisgregory.onmybike.model.Trip;
 public class SQLiteHelper extends SQLiteOpenHelper {
 
     private static final String DATABASE_NAME = "OnYourBike.db";
-    private static final int DATABASE_VERSION = 17;
+    private static final int DATABASE_VERSION = 18;
     private static String CLASS_NAME;
     private SQLiteDatabase sqLiteDatabase;
 
@@ -59,8 +59,6 @@ public class SQLiteHelper extends SQLiteOpenHelper {
     public void open(){
         Log.d(CLASS_NAME, "open()");
         SQLiteDatabase database = getWritableDatabase();
-        database.execSQL("INSERT INTO routes (name, notes) VALUES ('Route 1', 'Route 1 notes');");
-        database.execSQL("INSERT INTO routes (name, notes) VALUES ('Route 2', 'Route 2 notes');");
         Log.d(CLASS_NAME, "open() called. Path to database: " + database.toString());
         this.sqLiteDatabase = database;
     }
